@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
     <div class="w-full max-w-lg bg-white shadow-lg rounded-2xl p-8">
       <h1 class="text-3xl font-bold text-center text-gray-900 mb-2">Create account</h1>
-      <p class="text-center text-sm text-gray-600 mb-8">
+      <p class="text-center text-sm text-gray-600 mb-8" v-if="!isLoggedIn">
         Already have an account?
         <router-link to="/login" class="text-primary hover:text-orange-500 font-medium">
           Sign in
@@ -92,11 +92,12 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { authAPI } from '../api'
 
 const router = useRouter()
+const isLoggedIn = ref(authAPI.isLocallyLoggedIn())
 
 const form = reactive({
   fullName: '',
@@ -177,4 +178,17 @@ const handleRegister = async () => {
     isLoading.value = false
   }
 }
+
+onMounted(async () => {
+  try {
+    const session = await authAPI.getSession()
+    isLoggedIn.value = !!session?.profile
+    if (session?.profile) {
+      router.replace('/account')
+    }
+  } catch (error) {
+    console.error('Session check failed:', error)
+    isLoggedIn.value = authAPI.isLocallyLoggedIn()
+  }
+})
 </script>
