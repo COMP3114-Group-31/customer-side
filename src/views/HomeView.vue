@@ -11,7 +11,7 @@
             @click="startShopping"
             class="bg-primary hover:bg-orange-600 text-white px-8 py-3 !rounded-button whitespace-nowrap transition-colors duration-200"
           >
-            {{ $t('home.shopNow') }}
+            {{ labels.shopNow }}
           </button>
         </div>
       </div>
@@ -19,14 +19,14 @@
 
     <section class="py-12 bg-white">
       <div class="container mx-auto px-4">
-        <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">{{ $t('home.categories') }}</h2>
+        <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">{{ labels.categoriesTitle }}</h2>
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
           <button
             v-for="category in categories"
             :key="category.id"
             type="button"
             class="group flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 transition-all duration-200"
-            @click="goToProducts"
+            @click="goToProducts(category.key)"
           >
             <div class="w-16 h-16 mb-3 overflow-hidden rounded-lg bg-gray-200"></div>
             <span class="text-gray-700 group-hover:text-primary">{{ category.name }}</span>
@@ -38,8 +38,8 @@
     <section class="py-12 bg-gray-50">
       <div class="container mx-auto px-4">
         <div class="text-center mb-12">
-          <h2 class="text-3xl font-bold text-gray-900 mb-4">{{ $t('home.featured') }}</h2>
-          <p class="text-gray-600">{{ $t('home.featuredDesc') }}</p>
+          <h2 class="text-3xl font-bold text-gray-900 mb-4">{{ labels.featured }}</h2>
+          <p class="text-gray-600">{{ labels.featuredDesc }}</p>
         </div>
 
         <div v-if="productsLoading" class="text-center py-12">
@@ -70,10 +70,9 @@
 
             <div class="p-4">
               <h3 class="font-semibold text-gray-900 mb-2 truncate">{{ product.name }}</h3>
-              <p class="text-gray-600 text-sm mb-3 line-clamp-2">{{ product.description || labels.noDescription }}</p>
               <div class="flex items-center justify-between">
                 <span class="text-xl font-bold text-primary">{{ formatPrice(product.price) }}</span>
-                <span class="text-sm text-gray-500">{{ labels.productId }}: {{ getProductId(product) }}</span>
+                <span class="text-sm text-gray-500">{{ labels.categoryLabel }}: {{ formatCategory(product.category) }}</span>
               </div>
               <button
                 class="w-full mt-4 bg-primary hover:bg-orange-600 text-white py-2 rounded-button text-sm"
@@ -93,7 +92,7 @@
           >
             <i class="fas fa-chevron-left"></i>
           </button>
-          <span class="text-gray-700">{{ labels.page(currentPage, totalPages) }}</span>
+          <span class="text-gray-700">{{ labels.page }} {{ currentPage }} / {{ totalPages }}</span>
           <button
             @click="goToPage(currentPage + 1)"
             :disabled="currentPage >= totalPages"
@@ -113,8 +112,9 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { cartAPI, productsAPI } from '../api'
 
-const { locale } = useI18n()
 const router = useRouter()
+const { locale } = useI18n()
+
 const productsLoading = ref(false)
 const products = ref([])
 const currentPage = ref(1)
@@ -123,41 +123,72 @@ const totalProducts = ref(0)
 
 const isZh = computed(() => String(locale.value || '').toLowerCase().startsWith('zh'))
 const labels = computed(() => isZh.value ? {
+  shopNow: '立即选购',
+  categoriesTitle: '商品分类',
+  featured: '精选商品',
+  featuredDesc: '为你挑选的热门商品',
   loading: '正在加载商品...',
-  noProducts: '暂无商品。',
-  noDescription: '暂无详细介绍。',
+  noProducts: '暂无商品',
+  categoryLabel: '分类',
   addToCart: '加入购物车',
-  productId: '商品编号',
-  page: (p, t) => `第 ${p} / ${t} 页`
+  page: '第'
 } : {
+  shopNow: 'Shop Now',
+  categoriesTitle: 'Categories',
+  featured: 'Featured Products',
+  featuredDesc: 'A curated selection of popular products.',
   loading: 'Loading products...',
   noProducts: 'No products available.',
-  noDescription: 'No description available.',
+  categoryLabel: 'Category',
   addToCart: 'Add to Cart',
-  productId: 'Product ID',
-  page: (p, t) => `Page ${p} of ${t}`
+  page: 'Page'
 })
 
 const categories = computed(() => isZh.value ? [
-  { id: 1, name: '手机' },
-  { id: 2, name: '笔记本' },
-  { id: 3, name: '平板' },
-  { id: 4, name: '音频' },
-  { id: 5, name: '穿戴设备' },
-  { id: 6, name: '配件' }
+  { id: 1, key: 'phone', name: '手机' },
+  { id: 2, key: 'laptop', name: '笔记本' },
+  { id: 3, key: 'tablet', name: '平板' },
+  { id: 4, key: 'audio', name: '音频' },
+  { id: 5, key: 'wearable', name: '穿戴设备' },
+  { id: 6, key: 'accessory', name: '配件' }
 ] : [
-  { id: 1, name: 'Phones' },
-  { id: 2, name: 'Laptops' },
-  { id: 3, name: 'Tablets' },
-  { id: 4, name: 'Audio' },
-  { id: 5, name: 'Wearables' },
-  { id: 6, name: 'Accessories' }
+  { id: 1, key: 'phone', name: 'Phones' },
+  { id: 2, key: 'laptop', name: 'Laptops' },
+  { id: 3, key: 'tablet', name: 'Tablets' },
+  { id: 4, key: 'audio', name: 'Audio' },
+  { id: 5, key: 'wearable', name: 'Wearables' },
+  { id: 6, key: 'accessory', name: 'Accessories' }
 ])
 
 const totalPages = computed(() => Math.max(1, Math.ceil(totalProducts.value / pageSize.value)))
 
 const getProductId = (product) => product?.id ?? product?.product_id ?? product?._id
 const formatPrice = (price) => `$${Number(price || 0).toFixed(2)}`
+
+const formatCategory = (value) => {
+  const key = String(value || '').toLowerCase()
+  const zhMap = {
+    phone: '手机',
+    tablet: '平板',
+    laptop: '笔记本',
+    accessory: '配件',
+    other: '其他',
+    audio: '音频',
+    wearable: '穿戴设备',
+    wearables: '穿戴设备'
+  }
+  const enMap = {
+    phone: 'Phone',
+    tablet: 'Tablet',
+    laptop: 'Laptop',
+    accessory: 'Accessory',
+    other: 'Other',
+    audio: 'Audio',
+    wearable: 'Wearable',
+    wearables: 'Wearables'
+  }
+  return (isZh.value ? zhMap[key] : enMap[key]) || value || '-'
+}
 
 const getProductImage = (product) => {
   if (product?.thumbnail_url) return productsAPI.resolveAssetUrl(product.thumbnail_url)
@@ -175,7 +206,10 @@ const getProductImage = (product) => {
 }
 
 const startShopping = () => router.push('/products')
-const goToProducts = () => router.push('/products')
+const goToProducts = (category = '') => {
+  if (category) router.push({ path: '/products', query: { category } })
+  else router.push('/products')
+}
 
 const goToProduct = (productId) => {
   if (!productId) return
@@ -219,9 +253,6 @@ const fetchProducts = async () => {
   }
 }
 
-watch(locale, () => {
-  fetchProducts()
-})
-
+watch(locale, fetchProducts)
 onMounted(fetchProducts)
 </script>

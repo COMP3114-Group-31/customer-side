@@ -100,7 +100,7 @@
 
                   <div class="flex items-center justify-between">
                     <span class="text-2xl font-bold text-primary">{{ formatPrice(product.price) }}</span>
-                    <span class="text-sm text-gray-500">{{ labels.productId }}: {{ getProductId(product) }}</span>
+                    <span class="text-sm text-gray-500">{{ labels.categoryLabel }}: {{ formatCategory(product.category) }}</span>
                   </div>
                 </div>
               </button>
@@ -178,8 +178,7 @@ const labels = computed(() => isZh.value ? {
   totalResults: (n) => `共 ${n} 件商品`,
   loading: '正在加载商品...',
   noProducts: '暂无商品',
-  noDescription: '暂无详细介绍。',
-  productId: '商品编号',
+  categoryLabel: '分类',
   addToCart: '加入购物车',
   previous: '上一页',
   next: '下一页',
@@ -201,8 +200,7 @@ const labels = computed(() => isZh.value ? {
   totalResults: (n) => `${n} products`,
   loading: 'Loading products...',
   noProducts: 'No products available.',
-  noDescription: 'No description available.',
-  productId: 'Product ID',
+  categoryLabel: 'Category',
   addToCart: 'Add to Cart',
   previous: 'Previous',
   next: 'Next',
@@ -226,6 +224,12 @@ const sortedProducts = computed(() => [...products.value])
 
 const getProductId = (product) => product?.id ?? product?.product_id ?? product?._id
 const formatPrice = (price) => `$${Number(price || 0).toFixed(2)}`
+const formatCategory = (value) => {
+  const key = String(value || '').toLowerCase()
+  const zhMap = { phone: '手机', tablet: '平板', laptop: '笔记本', accessory: '配件', other: '其他', audio: '音频', wearable: '穿戴设备', wearables: '穿戴设备' }
+  const enMap = { phone: 'Phone', tablet: 'Tablet', laptop: 'Laptop', accessory: 'Accessory', other: 'Other', audio: 'Audio', wearable: 'Wearable', wearables: 'Wearables' }
+  return (isZh.value ? zhMap[key] : enMap[key]) || value || '-'
+}
 
 const getProductImage = (product) => {
   if (product?.thumbnail_url) return productsAPI.resolveAssetUrl(product.thumbnail_url)
