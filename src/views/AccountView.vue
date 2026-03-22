@@ -1,6 +1,5 @@
 <template>
-  <div :style="{ zoom: zoom }">
-    <div class="container mx-auto px-4 py-8">
+  <div class="container mx-auto px-4 py-8">
       <div class="py-4">
         <nav class="flex text-sm text-gray-600">
           <router-link to="/" class="hover:text-primary">{{ labels.home }}</router-link>
@@ -40,18 +39,31 @@
                 <span class="text-primary font-semibold">{{ fontSizeLabel }}</span>
               </div>
               <p class="text-sm text-gray-500 mb-4">{{ labels.fontSizeHint }}</p>
-              <input
-                v-model="zoom"
-                type="range"
-                min="90%"
-                max="120%"
-                step="5%"
-                class="w-full accent-primary"
-              >
               <div class="grid grid-cols-3 gap-2 mt-4">
-                <button type="button" class="px-3 py-2 rounded-lg border" @click="setZoom('90%')">{{ labels.small }}</button>
-                <button type="button" class="px-3 py-2 rounded-lg border" @click="setZoom('100%')">{{ labels.medium }}</button>
-                <button type="button" class="px-3 py-2 rounded-lg border" @click="setZoom('110%')">{{ labels.large }}</button>
+                <button
+                  type="button"
+                  class="px-3 py-2 rounded-lg border transition-colors"
+                  :class="zoom === '95%' ? 'border-primary text-primary bg-primary/5' : 'border-gray-200 hover:border-primary hover:text-primary'"
+                  @click="setZoom('95%')"
+                >
+                  {{ labels.small }}
+                </button>
+                <button
+                  type="button"
+                  class="px-3 py-2 rounded-lg border transition-colors"
+                  :class="zoom === '100%' ? 'border-primary text-primary bg-primary/5' : 'border-gray-200 hover:border-primary hover:text-primary'"
+                  @click="setZoom('100%')"
+                >
+                  {{ labels.medium }}
+                </button>
+                <button
+                  type="button"
+                  class="px-3 py-2 rounded-lg border transition-colors"
+                  :class="zoom === '105%' ? 'border-primary text-primary bg-primary/5' : 'border-gray-200 hover:border-primary hover:text-primary'"
+                  @click="setZoom('105%')"
+                >
+                  {{ labels.large }}
+                </button>
               </div>
             </div>
 
@@ -162,7 +174,6 @@
           </div>
         </div>
       </div>
-    </div>
   </div>
 </template>
 
@@ -180,7 +191,8 @@ const recentOrdersLoading = ref(false)
 const userProfile = ref(null)
 const recentOrders = ref([])
 const ordersUnavailable = ref(false)
-const zoom = ref(localStorage.getItem('account_zoom') || '100%')
+const savedZoom = localStorage.getItem('global_zoom')
+const zoom = ref(['95%', '100%', '105%'].includes(savedZoom) ? savedZoom : '100%')
 
 const isZh = computed(() => String(locale.value || '').toLowerCase().startsWith('zh'))
 const labels = computed(() => isZh.value ? {
@@ -190,7 +202,7 @@ const labels = computed(() => isZh.value ? {
   loginToView: '请先登录后查看账户信息',
   loginNow: '立即登录',
   fontSize: '显示设置',
-  fontSizeHint: '调节页面字体大小',
+  fontSizeHint: '调节整个网站页面字体大小',
   small: '小',
   medium: '中',
   large: '大',
@@ -224,7 +236,7 @@ const labels = computed(() => isZh.value ? {
   loginToView: 'Please login to view your account',
   loginNow: 'Login Now',
   fontSize: 'Display Settings',
-  fontSizeHint: 'Adjust page font size',
+  fontSizeHint: 'Adjust font size across the whole website',
   small: 'S',
   medium: 'M',
   large: 'L',
@@ -254,13 +266,14 @@ const labels = computed(() => isZh.value ? {
 })
 
 const fontSizeLabel = computed(() => {
-  if (zoom.value === '90%') return labels.value.small
-  if (zoom.value === '110%') return labels.value.large
+  if (zoom.value === '95%') return labels.value.small
+  if (zoom.value === '105%') return labels.value.large
   return labels.value.medium
 })
 
 watch(zoom, (value) => {
-  localStorage.setItem('account_zoom', value)
+  localStorage.setItem('global_zoom', value)
+  window.dispatchEvent(new Event('global-zoom-changed'))
 })
 
 const setZoom = (value) => {

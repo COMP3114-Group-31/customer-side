@@ -1,20 +1,41 @@
 <template>
-  <div class="app-shell min-h-screen bg-gray-50">
+  <div :style="{ zoom: zoom }" class="min-h-screen bg-gray-50">
     <Navbar />
-    <main class="app-main">
-      <router-view />
-    </main>
+    <router-view />
   </div>
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import Navbar from './components/Navbar.vue'
 
-const FONT_SCALE_KEY = 'ui_font_scale'
+const allowedZooms = ['95%', '100%', '105%']
+const savedZoom = localStorage.getItem('global_zoom')
+const zoom = ref(allowedZooms.includes(savedZoom) ? savedZoom : '100%')
+
+const syncZoom = () => {
+  const nextZoom = localStorage.getItem('global_zoom')
+  zoom.value = allowedZooms.includes(nextZoom) ? nextZoom : '100%'
+}
+
+const handleGlobalZoomChanged = () => {
+  syncZoom()
+}
+
+const handleStorage = (event) => {
+  if (event.key === 'global_zoom') {
+    syncZoom()
+  }
+}
 
 onMounted(() => {
-  const savedScale = localStorage.getItem(FONT_SCALE_KEY) || '1'
-  document.documentElement.style.setProperty('--app-font-scale', String(savedScale))
+  syncZoom()
+  window.addEventListener('global-zoom-changed', handleGlobalZoomChanged)
+  window.addEventListener('storage', handleStorage)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('global-zoom-changed', handleGlobalZoomChanged)
+  window.removeEventListener('storage', handleStorage)
 })
 </script>
